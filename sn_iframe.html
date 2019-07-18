@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  <style>
+    .sn-from {
+      display: inline-block;
+      width: 500px;
+      margin: 15px;
+    }
+
+    .btn {
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    body, .form-control {
+      font-size: 13px;
+      color: #000;
+    }
+    .form-control {
+      font-weight: bold;
+    }
+
+    .form-group {
+      margin-bottom: 7px;
+    }
+    label {
+      margin-bottom: 2px;
+    }
+    .iframe {
+      width: 100%;
+      min-height: 300px;
+      background: #ebebeb;
+      border: 2px solid lightgray;
+    }
+
+    .title {
+      margin-left: 15px;
+    }
+
+    ::placeholder{
+      color: #bbb;
+      font-weight: normal;
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="form-test" class="sn-from">
+  <div class="form-group">
+    <label for="base-url">Base Url</label>
+    <input type="text" class="form-control" id="base-url" value="https://app.signnow.com/webapp/document" required readonly>
+  </div>
+  <div class="form-group">
+    <label for="doc-id">Document Id</label>
+    <input type="text" class="form-control" id="doc-id" required>
+  </div>
+  <div class="form-group">
+    <div class="form-row">
+      <div class="col">
+        <input id="custom-param-name" type="text" class="form-control" placeholder="custom param name" value="snfiller">
+      </div>
+      <div class="col">
+        <input id="custom-param-value" type="text" class="form-control" placeholder="custom param value" value="snfiller6">
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="sn-token">SignNow Token</label>
+    <input type="text" class="form-control" id="sn-token" required>
+  </div>
+
+  <hr>
+  <div class="form-group">
+    <label for="result-url">Result URL</label>
+    <input type="text" class="form-control" id="result-url" value="https://app.signnow.com/webapp/document" readonly>
+  </div>
+
+
+  <button type="button" class="btn btn-primary" id="sn-btn">Update Src</button>
+</div>
+
+<div>
+  <h5 class="title">SignNow Iframe</h5>
+  <iframe frameborder="0" height="500px" width="100%" id="sn-iframe" class="iframe"></iframe>
+</div>
+
+
+<script>
+  let snIframe  = document.getElementById('sn-iframe');
+  let snBtnEl   = document.getElementById('sn-btn');
+  let resUrllEl = document.getElementById('result-url');
+
+  let baseUrlEl = document.getElementById('base-url');
+  let docIdEl   = document.getElementById('doc-id');
+  let customParamName   = document.getElementById('custom-param-name');
+  let customParamValue   = document.getElementById('custom-param-value');
+  let snTokenEl = document.getElementById('sn-token');
+
+  const isLocalStorageAvailable = isStorageAvailable('localStorage');
+
+  const localStorageKeys = {
+    doc_id: 'doc_id', sn_token: 'sn_token', custom_param_name: 'custom_param_name', custom_param_value: 'custom_param_value'
+  };
+
+  let resultUrl = '';
+
+  setData(); // load data from localstorage
+  snBtnEl.addEventListener('click', buttonClickHandler);
+
+  function setData() {
+    console.log('doc_id from local storage = ', getFromLocalStorage(localStorageKeys.doc_id));
+
+    docIdEl.value = getFromLocalStorage(localStorageKeys.doc_id);
+    snTokenEl.value = getFromLocalStorage(localStorageKeys.sn_token);
+    customParamName.value = getFromLocalStorage(localStorageKeys.custom_param_name);
+    customParamValue.value = getFromLocalStorage(localStorageKeys.custom_param_value);
+  }
+
+  function buttonClickHandler(evt) {
+    resultUrl = `${baseUrlEl.value}/${docIdEl.value}?access_token=${snTokenEl.value}`;
+    snIframe.src = resultUrl;
+
+    if (customParamName.value) {
+      saveToLocalStorage(localStorageKeys.custom_param_name, customParamName.value);
+      saveToLocalStorage(localStorageKeys.custom_param_value, customParamValue.value);
+      resultUrl += `&${customParamName.value.trim()}=${customParamValue.value.trim()}`
+    }
+
+    resUrllEl.value = resultUrl;
+
+    saveToLocalStorage(localStorageKeys.doc_id, docIdEl.value);
+    saveToLocalStorage(localStorageKeys.sn_token, snTokenEl.value);
+  }
+
+
+  function saveToLocalStorage(keyName, data) {
+    if (isLocalStorageAvailable) {
+      return localStorage.setItem(keyName, JSON.stringify(data));
+    }
+  }
+
+  function getFromLocalStorage(keyName, data) {
+    if (isLocalStorageAvailable) {
+      return JSON.parse(localStorage.getItem(keyName, data));
+    }
+  }
+
+  function isStorageAvailable(type) {
+    try {
+      const storage = window[type];
+      const x = '__storage_test__';
+      storage.setItem(x, x);
+      return true;
+    }
+    catch (e) {
+      return false;
+    }
+  }
+
+</script>
+
+</body>
+</html>
